@@ -1,29 +1,25 @@
 from rest_framework import serializers
-from .models import post
+from posts.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
     is_owner = serializers.SerializerMethodField()
-    profile_id = serializers.ReadOnlyField(source=owner.profile.id)
-    profile_image = serializers.ReadOnlyField(source=owner.profile.image.url)
-    
-    def validate_image(self, value):
-        if value.size > 1024 * 1024 *2:
-            raise serializers.ValidationError(
-                'Image size larger than 2MB!'
-            )
-        if value.width > 4096:
-            raise serializers.ValidationError(
-                 'Image width larger than 4096px'
-            )
+    profile_id = serializers.ReadOnlyField(source='owner.profile.id')
+    profile_image = serializers.ReadOnlyField(source='owner.profile.image.url')
 
-        if value.height > 4096:
+    def validate_image(self, value):
+        if value.size > 2 * 1024 * 1024:
+            raise serializers.ValidationError('Image size larger than 2MB!')
+        if value.image.height > 4096:
             raise serializers.ValidationError(
-                'image height larger than 4096px'
+                'Image height larger than 4096px!'
             )
-            return value
-            
+        if value.image.width > 4096:
+            raise serializers.ValidationError(
+                'Image width larger than 4096px!'
+            )
+        return value
 
     def get_is_owner(self, obj):
         request = self.context['request']
